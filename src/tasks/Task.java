@@ -1,6 +1,8 @@
+package tasks;
+
 import java.util.Objects;
 
-class Task {
+public class Task {
     private String title;
     private String description;
     private int id;
@@ -52,14 +54,13 @@ class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
+        return "tasks.Task{" +
                 "title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status=" + status +
                 '}';
     }
-
 
     public void setId(int id) {
         this.id = id;
@@ -73,21 +74,3 @@ class Task {
         this.description = description;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
