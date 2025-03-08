@@ -1,8 +1,7 @@
 package tasks;
 
 public class Subtask extends Task {
-    private int epicId;
-
+    private int epicId; // Id эпика, к которому относится подзадача
 
     public Subtask(String title, String description, int epicId) {
         super(title, description);
@@ -10,12 +9,18 @@ public class Subtask extends Task {
     }
 
     public Subtask(Subtask subtask) {
-        super(subtask); // Вызываем конструктор копирования родительского класса
-        this.epicId = subtask.epicId; // Копируем epicId
+        super(subtask); // Копируем поля задачи
+        this.epicId = subtask.epicId; // Копируем id эпика
     }
 
+    // Возвращает id эпика
     public int getEpicId() {
         return epicId;
+    }
+
+    // Устанавливает id эпика
+    public void setEpicId(int epicId) {
+        this.epicId = epicId;
     }
 
     @Override
@@ -27,9 +32,5 @@ public class Subtask extends Task {
                 ", status=" + getStatus() +
                 ", epicId=" + epicId +
                 '}';
-    }
-
-    public void setEpicId(int epicId) {
-        this.epicId = epicId;
     }
 }
