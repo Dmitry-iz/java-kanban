@@ -9,12 +9,12 @@ import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     // Хранилище задач, подзадач и эпиков
-    private Map<Integer, Task> tasks = new HashMap<>();
-    private Map<Integer, Subtask> subtasks = new HashMap<>();
-    private Map<Integer, Epic> epics = new HashMap<>();
+    private final Map<Integer, Task> tasks = new HashMap<>();
+    private final Map<Integer, Subtask> subtasks = new HashMap<>();
+    private final Map<Integer, Epic> epics = new HashMap<>();
 
     // Менеджер истории для отслеживания просмотренных задач
-    private HistoryManager historyManager = Managers.getDefaultHistory();
+    private final HistoryManager historyManager = Managers.getDefaultHistory();
 
     // Счетчики для генерации уникальных id
     private int idCounter = 1;

@@ -107,7 +107,7 @@ class TaskManagerTest {
         List<Task> history = historyManager.getHistory();
         assertFalse(history.isEmpty(), "История не должна быть пустой.");
 
-        Task historyTask = history.get(0);
+        Task historyTask = history.getFirst();
         assertEquals(Status.NEW, historyTask.getStatus(), "История должна сохранять предыдущую версию задачи.");
     }
 
@@ -198,7 +198,7 @@ class TaskManagerTest {
         historyManager.remove(1);
 
         assertEquals(1, historyManager.getHistory().size());
-        assertEquals(task2, historyManager.getHistory().get(0));
+        assertEquals(task2, historyManager.getHistory().getFirst());
     }
 
     @Test
