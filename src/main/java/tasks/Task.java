@@ -44,6 +44,21 @@ public class Task {
         return status;
     }
 
+    // Сеттер для идентификатора задачи
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    // Сеттер для названия задачи
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    // Сеттер для описания задачи
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     // Сеттер для статуса задачи
     public void setStatus(Status status) {
         this.status = status;
@@ -81,20 +96,5 @@ public class Task {
                 ", id=" + id +
                 ", status=" + status +
                 '}';
-    }
-
-    // Сеттер для идентификатора задачи
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    // Сеттер для названия задачи
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    // Сеттер для описания задачи
-    public void setDescription(String description) {
-        this.description = description;
     }
 }

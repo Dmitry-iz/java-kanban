@@ -91,6 +91,11 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
+    public List<Task> getHistory() {
+        return historyManager.getHistory(); // Возвращаем историю просмотров
+    }
+
+    @Override
     public void updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
             tasks.put(task.getId(), task); // Обновляем задачу
@@ -199,10 +204,5 @@ public class InMemoryTaskManager implements TaskManager {
                 epic.setStatus(Status.NEW);
             }
         }
-    }
-
-    @Override
-    public List<Task> getHistory() {
-        return historyManager.getHistory(); // Возвращаем историю просмотров
     }
 }
