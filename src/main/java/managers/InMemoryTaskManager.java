@@ -9,9 +9,9 @@ import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     // Хранилище задач, подзадач и эпиков
-    Map<Integer, Task> tasks = new HashMap<>();
-    Map<Integer, Subtask> subtasks = new HashMap<>();
-    Map<Integer, Epic> epics = new HashMap<>();
+   protected Map<Integer, Task> tasks = new HashMap<>();
+   protected Map<Integer, Subtask> subtasks = new HashMap<>();
+   protected Map<Integer, Epic> epics = new HashMap<>();
 
     // Менеджер истории для отслеживания просмотренных задач
     private HistoryManager historyManager = Managers.getDefaultHistory();
