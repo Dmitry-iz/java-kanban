@@ -1,5 +1,7 @@
 package tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Task {
@@ -8,6 +10,8 @@ public class Task {
     private String description; // Описание задачи
     private int id;             // Уникальный идентификатор задачи
     private Status status;      // Текущий статус задачи (NEW, IN_PROGRESS, DONE)
+    private LocalDateTime startTime;
+    private Duration duration;
 
     // Конструктор для создания новой задачи
     public Task(String title, String description) {
@@ -22,6 +26,23 @@ public class Task {
         this.description = task.description;
         this.id = task.id;
         this.status = task.status;
+        this.startTime = task.startTime;
+        this.duration = task.duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (startTime == null || duration == null) {
+            return null;
+        }
+        return startTime.plus(duration);
     }
 
     // Геттер для названия задачи
@@ -42,6 +63,14 @@ public class Task {
     // Геттер для статуса задачи
     public Status getStatus() {
         return status;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
     }
 
     // Сеттер для идентификатора задачи
@@ -90,11 +119,13 @@ public class Task {
     // Переопределение метода toString для удобного вывода информации о задаче
     @Override
     public String toString() {
-        return "tasks.Task{" +
+        return "Task{" +
                 "title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status=" + status +
+                ", startTime=" + startTime +
+                ", duration=" + duration +
                 '}';
     }
 }
