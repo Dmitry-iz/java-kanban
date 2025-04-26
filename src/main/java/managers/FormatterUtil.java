@@ -22,7 +22,7 @@ public class FormatterUtil {
      * @param value строка с данными задачи
      * @return объект задачи (Task, Subtask или Epic)
      */
-    static Task fromString(String value) {
+    public static Task fromString(String value) {
         // Разбиваем строку на части по запятым (максимум 8 частей)
         String[] fields = value.split(",", 8);
 
@@ -73,24 +73,19 @@ public class FormatterUtil {
      * @param task задача для сериализации
      * @return строка в формате: id,type,name,status,description,epic,start_time,duration
      */
-    static String toString(Task task) {
-        // Определяем тип задачи
+    public static String toString(Task task) {
         String type = task instanceof Epic ? TaskType.EPIC.name() :
                 task instanceof Subtask ? TaskType.SUBTASK.name() : TaskType.TASK.name();
 
-        // Для подзадачи получаем ID эпика, для остальных - пустую строку
         String epicId = task instanceof Subtask ?
                 String.valueOf(((Subtask) task).getEpicId()) : "";
 
-        // Форматируем время начала (если задано)
         String startTime = task.getStartTime() != null ?
                 task.getStartTime().format(DATE_FORMATTER) : "";
 
-        // Получаем продолжительность в минутах (если задана)
         String duration = task.getDuration() != null ?
                 String.valueOf(task.getDuration().toMinutes()) : "";
 
-        // Собираем все поля в строку через запятую
         return String.join(",",
                 String.valueOf(task.getId()),
                 type,

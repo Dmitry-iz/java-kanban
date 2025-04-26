@@ -1,5 +1,7 @@
 package tasks;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -7,11 +9,14 @@ import java.util.List;
 import java.util.Objects;
 
 public class Epic extends Task {
-    private List<Integer> subtaskIds = new ArrayList<>(); // Список id подзадач
+    @SerializedName("subtaskIds")
+    private List<Integer> subtaskIds; // Список id подзадач
+    @SerializedName("endTime")
     private LocalDateTime endTime;
 
     public Epic(String title, String description) {
         super(title, description);
+        this.subtaskIds = new ArrayList<>();
     }
 
     public Epic(Epic epic) {
@@ -19,27 +24,17 @@ public class Epic extends Task {
         this.subtaskIds = new ArrayList<>(epic.subtaskIds); // Копируем список подзадач
     }
 
-    public void updateTiming(List<Subtask> subtasks) {
-        LocalDateTime earliest = subtasks.stream()
-                .map(Subtask::getStartTime)
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo)
-                .orElse(null);
+    public Epic() {
+        super();
+        this.subtaskIds = new ArrayList<>();
+    }
 
-        setStartTime(earliest);
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
 
-        this.endTime = subtasks.stream()
-                .map(Subtask::getEndTime)
-                .filter(Objects::nonNull)
-                .max(LocalDateTime::compareTo)
-                .orElse(null);
-
-        Duration total = subtasks.stream()
-                .map(Subtask::getDuration)
-                .filter(Objects::nonNull)
-                .reduce(Duration.ZERO, Duration::plus);
-
-        setDuration(total);
+    public List<Integer> getSubtaskIds() {
+        return subtaskIds;
     }
 
     @Override
@@ -47,15 +42,46 @@ public class Epic extends Task {
         return endTime;
     }
 
-    // Добавляет id подзадачи в список
+    public void updateTiming(List<Subtask> subtasks) {
+        if (subtasks.isEmpty()) {
+            // Если подзадач нет, сбрасываем время
+            super.setStartTime(null);
+            super.setDuration(Duration.ZERO);
+            setEndTime(null);
+            return;
+        }
+
+        // Находим самое раннее время начала
+        LocalDateTime earliestStart = subtasks.stream()
+                .map(Subtask::getStartTime)
+                .filter(Objects::nonNull)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+
+        // Находим самое позднее время окончания
+        LocalDateTime latestEnd = subtasks.stream()
+                .map(Subtask::getEndTime)
+                .filter(Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+
+        // Суммируем продолжительность всех подзадач
+        Duration totalDuration = subtasks.stream()
+                .map(Subtask::getDuration)
+                .filter(Objects::nonNull)
+                .reduce(Duration.ZERO, Duration::plus);
+
+        // Устанавливаем значения через сеттеры
+        super.setStartTime(earliestStart);
+        super.setDuration(totalDuration);
+        setEndTime(latestEnd);
+    }
+
+
     public void addSubtask(int subtaskId) {
         subtaskIds.add(subtaskId);
     }
 
-    // Возвращает список id подзадач
-    public List<Integer> getSubtaskIds() {
-        return subtaskIds;
-    }
 
     @Override
     public String toString() {

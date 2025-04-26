@@ -1,5 +1,6 @@
 package managers;
 
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,9 +11,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
+
 
 /**
  * Менеджер задач, который автоматически сохраняет состояние в файл.
@@ -176,7 +179,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return result;
     }
 
-
     //Основной метод для тестирования функциональности FileBackedTaskManager.
     public static void main(String[] args) {
         File file = new File("tasks.csv");
@@ -247,6 +249,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         } finally {
             file.delete();
         }
+    }
+
+    public void clearAllData() {       // использовал для тестов
+        deleteAllTasks();    // Удалить все задачи
+        deleteAllEpics();    // Удалить все эпики (включая подзадачи)
+        idCounter = 0; // Сбрасываем счетчик
+        save();              // Перезаписать файл с заголовком
     }
 }
 

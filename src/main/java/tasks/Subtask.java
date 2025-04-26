@@ -1,6 +1,9 @@
 package tasks;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Subtask extends Task {
+    @SerializedName("epicId")
     private int epicId; // Id эпика, к которому относится подзадача
 
     public Subtask(String title, String description, int epicId) {
@@ -11,6 +14,10 @@ public class Subtask extends Task {
     public Subtask(Subtask subtask) {
         super(subtask); // Копируем поля задачи
         this.epicId = subtask.epicId; // Копируем id эпика
+    }
+
+    public Subtask() {
+        super();
     }
 
     // Возвращает id эпика
