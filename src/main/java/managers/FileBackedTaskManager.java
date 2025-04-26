@@ -1,15 +1,21 @@
 package managers;
 
-import tasks.*;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
+
 
 /**
  * Менеджер задач, который автоматически сохраняет состояние в файл.
@@ -33,20 +39,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
      */
     public void save() {
         try (FileWriter writer = new FileWriter(file)) {
-            // Записываем заголовок CSV
-            writer.write("id,type,name,status,description,epic\n");
+            // Обновленный заголовок с новыми полями
+            writer.write("id,type,name,status,description,epic,start_time,duration\n");
 
-            // Сохраняем задачи
+            // Сохраняем все типы задач
             for (Task task : getAllTasks()) {
                 writer.write(FormatterUtil.toString(task) + "\n");
             }
-
-            // Сохраняем эпики
             for (Epic epic : getAllEpics()) {
                 writer.write(FormatterUtil.toString(epic) + "\n");
             }
-
-            // Сохраняем подзадачи
             for (Subtask subtask : getAllSubtasks()) {
                 writer.write(FormatterUtil.toString(subtask) + "\n");
             }
@@ -64,24 +66,35 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
         try {
-            // Читаем содержимое файла
             String content = Files.readString(file.toPath());
             String[] lines = content.split("\n");
 
-            // Пропускаем заголовок и обрабатываем каждую строку
             for (int i = 1; i < lines.length; i++) {
                 Task task = FormatterUtil.fromString(lines[i]);
                 if (task != null) {
-                    // В зависимости от типа задачи добавляем её в соответствующее хранилище
                     if (task instanceof Epic) {
                         manager.epics.put(task.getId(), (Epic) task);
                     } else if (task instanceof Subtask) {
                         manager.subtasks.put(task.getId(), (Subtask) task);
+                        Epic epic = manager.epics.get(((Subtask) task).getEpicId());
+                        if (epic != null) {
+                            epic.addSubtask(task.getId());
+                        }
                     } else {
                         manager.tasks.put(task.getId(), task);
                     }
                 }
             }
+
+            // Обновляем время эпиков после загрузки
+            for (Epic epic : manager.epics.values()) {
+                List<Subtask> subs = epic.getSubtaskIds().stream()
+                        .map(manager.subtasks::get)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+                epic.updateTiming(subs);
+            }
+
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при загрузке файла", e);
         }
@@ -166,78 +179,83 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return result;
     }
 
-
     //Основной метод для тестирования функциональности FileBackedTaskManager.
     public static void main(String[] args) {
-        // Создаем временный файл для тестирования
-        File file;
-        try {
-            file = File.createTempFile("tasks", ".csv");
-        } catch (IOException e) {
-            System.err.println("Ошибка при создании временного файла: " + e.getMessage());
-            return;
-        }
-
-        // Создаем менеджер с автосохранением в файл
+        File file = new File("tasks.csv");
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
 
-        // Создаем задачи
-        Task task1 = manager.createTask(new Task("Task 1", "Описание задачи 1"));
-        Task task2 = manager.createTask(new Task("Task 2", "Описание задачи 2"));
-
-        // Создаем эпик с подзадачами
-        Epic epic1 = manager.createEpic(new Epic("Epic 1", "Описание эпика 1"));
-        Subtask subtask1 = manager.createSubtask(new Subtask("Subtask 1", "Описание подзадачи 1", epic1.getId()));
-        Subtask subtask2 = manager.createSubtask(new Subtask("Subtask 2", "Описание подзадачи 2", epic1.getId()));
-
-        // Просматриваем задачи, чтобы добавить их в историю
-        manager.getTaskById(task1.getId()); // Просмотр задачи 1
-        manager.getEpicById(epic1.getId()); // Просмотр эпика 1
-        manager.getSubTaskById(subtask1.getId()); // Просмотр подзадачи 1
-
-        // Меняем статусы задач
-        task1.setStatus(Status.IN_PROGRESS);
-        manager.updateTask(task1);
-
-        subtask1.setStatus(Status.DONE);
-        manager.updateSubtask(subtask1);
-
-        subtask2.setStatus(Status.DONE);
-        manager.updateSubtask(subtask2);
-
-        // Обновляем статус эпика 1 (должен стать DONE, так как все подзадачи выполнены)
-        manager.updateEpicStatus(epic1.getId());
-
-        // Выводим список задач, эпиков и подзадач
-        System.out.println("Созданные задачи:");
-        System.out.println(manager.getAllTasks());
-        System.out.println("Созданные эпики:");
-        System.out.println(manager.getAllEpics());
-        System.out.println("Созданные подзадачи:");
-        System.out.println(manager.getAllSubtasks());
-
-        // Выводим содержимое файла для наглядности
-        System.out.println("\nСодержимое файла:");
         try {
-            String content = Files.readString(file.toPath());
-            System.out.println(content);
-        } catch (IOException e) {
-            System.err.println("Ошибка при чтении файла: " + e.getMessage());
+            // Создаем задачи с временем
+            Task task1 = new Task("Task 1", "Description 1");
+            task1.setStartTime(LocalDateTime.of(2024, 3, 1, 9, 0));
+            task1.setDuration(Duration.ofHours(2));
+            manager.createTask(task1);
+
+            Task task2 = new Task("Task 2", "Description 2");
+            task2.setStartTime(LocalDateTime.of(2024, 4, 1, 11, 0));
+            task2.setDuration(Duration.ofMinutes(30));
+            manager.createTask(task2);
+
+            // Создаем эпик с подзадачами
+            Epic epic1 = manager.createEpic(new Epic("Epic 1", "Epic description"));
+
+            Subtask subtask1 = new Subtask("Subtask 1", "Sub 1", epic1.getId());
+            subtask1.setStartTime(LocalDateTime.of(2024, 5, 2, 10, 0));
+            subtask1.setDuration(Duration.ofHours(1));
+            manager.createSubtask(subtask1);
+
+            Subtask subtask2 = new Subtask("Subtask 2", "Sub 2", epic1.getId());
+            subtask2.setStartTime(LocalDateTime.of(2024, 6, 2, 12, 0));
+            subtask2.setDuration(Duration.ofHours(2));
+            manager.createSubtask(subtask2);
+
+            // Тестируем приоритетный список
+            System.out.println("\nPrioritized tasks:");
+            manager.getPrioritizedTasks().forEach(task ->
+                    System.out.printf("%s: %s - %s (Duration: %d min)%n",
+                            task.getStartTime(),
+                            task.getEndTime(),
+                            task.getTitle(),
+                            task.getDuration().toMinutes())
+            );
+
+            // Тестируем время эпика
+            Epic loadedEpic = manager.getEpicById(epic1.getId());
+            System.out.println("\nEpic timing:");
+            System.out.printf("Start: %s%nEnd: %s%nDuration: %d min%n",
+                    loadedEpic.getStartTime(),
+                    loadedEpic.getEndTime(),
+                    loadedEpic.getDuration().toMinutes());
+
+            // Тестируем пересечение задач
+            try {
+                Task invalidTask = new Task("Invalid", "Should overlap");
+                invalidTask.setStartTime(LocalDateTime.of(2024, 3, 1, 10, 30));
+                invalidTask.setDuration(Duration.ofHours(1));
+                manager.createTask(invalidTask);
+            } catch (ManagerValidationException e) {
+                System.out.println("\nValidation test passed: " + e.getMessage());
+            }
+
+            // Сохраняем и загружаем из файла
+            FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(file);
+
+            // Проверяем восстановленные данные
+            System.out.println("\nAfter loading from file:");
+            System.out.println("Tasks: " + loadedManager.getAllTasks().size());
+            System.out.println("Epics: " + loadedManager.getAllEpics().size());
+            System.out.println("Subtasks: " + loadedManager.getAllSubtasks().size());
+
+        } finally {
+            file.delete();
         }
+    }
 
-        // Восстанавливаем менеджер из файла
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(file);
-
-        // Проверяем, что задачи, эпики и подзадачи восстановлены
-        System.out.println("\nЗадачи после восстановления:");
-        System.out.println(loadedManager.getAllTasks());
-        System.out.println("Эпики после восстановления:");
-        System.out.println(loadedManager.getAllEpics());
-        System.out.println("Подзадачи после восстановления:");
-        System.out.println(loadedManager.getAllSubtasks());
-
-        // Удаляем временный файл после завершения работы
-        file.deleteOnExit();
+    public void clearAllData() {       // использовал для собственных тестов и отладки
+        deleteAllTasks();    // Удалить все задачи
+        deleteAllEpics();    // Удалить все эпики (включая подзадачи)
+        idCounter = 0; // Сбрасываем счетчик
+        save();              // Перезаписать файл с заголовком
     }
 }
 

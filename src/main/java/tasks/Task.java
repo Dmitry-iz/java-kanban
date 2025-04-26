@@ -1,13 +1,25 @@
 package tasks;
 
+import com.google.gson.annotations.SerializedName;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Task {
     // Поля класса
+    @SerializedName("title")
     private String title;       // Название задачи
+    @SerializedName("description")
     private String description; // Описание задачи
+    @SerializedName("id")
     private int id;             // Уникальный идентификатор задачи
-    private Status status;      // Текущий статус задачи (NEW, IN_PROGRESS, DONE)
+    @SerializedName("status")
+    private Status status; // Status.NEW; // Значение по умолчанию
+    @SerializedName("startTime")
+    private LocalDateTime startTime;
+    @SerializedName("duration")
+    private Duration duration;
 
     // Конструктор для создания новой задачи
     public Task(String title, String description) {
@@ -22,6 +34,42 @@ public class Task {
         this.description = task.description;
         this.id = task.id;
         this.status = task.status;
+        this.startTime = task.startTime;
+        this.duration = task.duration;
+    }
+
+    // Конструктор для Gson, иначе он не сможет десериализовать объект с полями
+    public Task(
+            String title,
+            String description,
+            Status status,
+            LocalDateTime startTime,
+            Duration duration
+    ) {
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.startTime = startTime;
+        this.duration = duration;
+    }
+
+    public Task() {
+        this.setStatus(Status.NEW);
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (startTime == null || duration == null) {
+            return null;
+        }
+        return startTime.plus(duration);
     }
 
     // Геттер для названия задачи
@@ -44,6 +92,14 @@ public class Task {
         return status;
     }
 
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
     // Сеттер для идентификатора задачи
     public void setId(int id) {
         this.id = id;
@@ -61,7 +117,8 @@ public class Task {
 
     // Сеттер для статуса задачи
     public void setStatus(Status status) {
-        this.status = status;
+        //this.status = status;
+        this.status = (status != null) ? status : Status.NEW;
     }
 
     // Переопределение метода equals для сравнения задач
@@ -90,11 +147,13 @@ public class Task {
     // Переопределение метода toString для удобного вывода информации о задаче
     @Override
     public String toString() {
-        return "tasks.Task{" +
+        return "Task{" +
                 "title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", id=" + id +
                 ", status=" + status +
+                ", startTime=" + startTime +
+                ", duration=" + duration +
                 '}';
     }
 }
