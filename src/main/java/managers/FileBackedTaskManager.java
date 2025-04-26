@@ -251,7 +251,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public void clearAllData() {       // использовал для тестов
+    public void clearAllData() {       // использовал для собственных тестов и отладки
         deleteAllTasks();    // Удалить все задачи
         deleteAllEpics();    // Удалить все эпики (включая подзадачи)
         idCounter = 0; // Сбрасываем счетчик

@@ -1,4 +1,4 @@
-package java.api;
+package http;
 
 import com.google.gson.Gson;
 import server.HttpTaskServer;

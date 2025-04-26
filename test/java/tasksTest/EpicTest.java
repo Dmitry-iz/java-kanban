@@ -1,7 +1,11 @@
-package tasks;
+package tasksTest;
 
 import managers.*;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import tasks.Epic;
+import tasks.Status;
+import tasks.Subtask;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,7 +28,7 @@ class EpicTest {
         Subtask subtask1 = manager.createSubtask(new Subtask("Subtask 1", "Description 1", epic.getId()));
         Subtask subtask2 = manager.createSubtask(new Subtask("Subtask 2", "Description 2", epic.getId()));
 
-        assertEquals(Status.NEW, epic.getStatus(), "Статус эпика должен быть NEW.");
+        Assertions.assertEquals(Status.NEW, epic.getStatus(), "Статус эпика должен быть NEW.");
 
         subtask1.setStatus(Status.IN_PROGRESS);
         manager.updateSubtask(subtask1);

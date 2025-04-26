@@ -1,5 +1,8 @@
 package managers;
 
+import managers.ManagerValidationException;
+import managers.TaskManager;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tasks.Epic;
 import tasks.Status;
@@ -126,7 +129,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         task2.setStartTime(task1.getStartTime().plusMinutes(30));
         task2.setDuration(Duration.ofHours(1));
 
-        assertThrows(ManagerValidationException.class, () -> manager.createTask(task2),
+        Assertions.assertThrows(ManagerValidationException.class, () -> manager.createTask(task2),
                 "Должно быть исключение при пересечении времени задач.");
     }
 }

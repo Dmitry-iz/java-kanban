@@ -1,4 +1,4 @@
-package java.api;
+package http;
 
 import org.junit.jupiter.api.Test;
 import tasks.Epic;

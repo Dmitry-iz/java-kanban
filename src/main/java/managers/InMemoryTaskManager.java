@@ -1,6 +1,5 @@
 package managers;
 
-
 import tasks.Epic;
 import tasks.Status;
 import tasks.Subtask;
@@ -32,20 +31,29 @@ public class InMemoryTaskManager implements TaskManager {
         return new ArrayList<>(prioritizedTasks);
     }
 
+    private void validateSubtaskTime(Subtask newSubtask) {
+        Epic epic = epics.get(newSubtask.getEpicId());
+        if (epic == null) return;
+
+        List<Subtask> subtasksValidate = epic.getSubtaskIds().stream()
+                .map(subtasks::get)
+                .filter(Objects::nonNull)
+                .filter(s -> s.getId() != newSubtask.getId()) // Исключаем текущую задачу при обновлении
+                .collect(Collectors.toList());
+
+        boolean hasConflict = subtasksValidate.stream().anyMatch(existing -> isOverlap(existing, newSubtask));
+        if (hasConflict) {
+            throw new ManagerValidationException("Задача пересекается с существующей");
+        }
+    }
+
     private void validateTaskTime(Task newTask) {
-
-        // Не проверяем эпики и подзадачи
-        if (newTask instanceof Epic || newTask instanceof Subtask) return;
-
-        // Возвращаем исходную логику для задач
-        if (newTask.getStartTime() == null) return;
-
         boolean hasConflict = getAllTasks().stream()
                 .filter(task -> task.getId() != newTask.getId())
                 .anyMatch(existing -> isOverlap(existing, newTask));
 
         if (hasConflict) {
-            throw new ManagerValidationException("Задача пересекается с существующей");
+            throw new ManagerValidationException("Задачи пересекаются по времени");
         }
     }
 
@@ -74,6 +82,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask createSubtask(Subtask subtask) {
+        validateSubtaskTime(subtask);
         if (epics.containsKey(subtask.getEpicId())) {
             if (subtask.getEpicId() == subtask.getId()) {
                 return null; // Подзадача не может быть своим эпиком
@@ -176,6 +185,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateSubtask(Subtask subtask) {
+        validateSubtaskTime(subtask);
         if (subtasks.containsKey(subtask.getId())) {
             subtasks.put(subtask.getId(), subtask); // Обновляем подзадачу
             updateEpicStatus(subtask.getEpicId()); // Обновляем статус эпика

@@ -1,6 +1,5 @@
 package handler;
 
-
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -28,7 +27,7 @@ public abstract class BaseHttpHandler implements HttpHandler {
         sendText(exchange, "Not Found", 404);
     }
 
-    protected void sendNotAcceptable(HttpExchange exchange) throws IOException {
+    protected void sendHasInteractions(HttpExchange exchange) throws IOException {
         sendText(exchange, "Task time conflict", 406);
     }
 

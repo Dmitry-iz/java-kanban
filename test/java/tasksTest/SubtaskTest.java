@@ -1,7 +1,9 @@
-package tasks;
+package tasksTest;
 
 import managers.*;
 import org.junit.jupiter.api.Test;
+import tasks.Epic;
+import tasks.Subtask;
 
 import static org.junit.jupiter.api.Assertions.*;
 

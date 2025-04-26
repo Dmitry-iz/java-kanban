@@ -1,8 +1,10 @@
 package handler;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 
+import managers.ManagerValidationException;
 import managers.TaskManager;
 import tasks.Subtask;
 
@@ -38,19 +40,33 @@ public class SubtasksHandler extends BaseHttpHandler {
                         }
                     }
                 }
+
                 case "POST" -> {
                     String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                    Subtask subtask = gson.fromJson(body, Subtask.class);
-                    if (subtask.getId() == 0) {
-                        try {
-                            Subtask created = taskManager.createSubtask(subtask);
-                            sendCreated(exchange, gson.toJson(created));
-                        } catch (Exception e) {
-                            sendBadRequest(exchange);
+                    try {
+                        Subtask subtask = gson.fromJson(body, Subtask.class);
+
+                        if (subtask.getId() == 0) {
+                            try {
+                                Subtask created = taskManager.createSubtask(subtask);
+                                sendCreated(exchange, gson.toJson(created));
+                            } catch (ManagerValidationException e) {
+                                sendHasInteractions(exchange);  // 406 при конфликте времени
+                            } catch (Exception e) {
+                                sendBadRequest(exchange);  // 400 для других ошибок
+                            }
+                        } else {
+                            try {
+                                taskManager.updateSubtask(subtask);
+                                sendCreated(exchange, gson.toJson(subtask));
+                            } catch (ManagerValidationException e) {
+                                sendHasInteractions(exchange);  // 406 при конфликте времени
+                            } catch (Exception e) {
+                                sendBadRequest(exchange);  // 400 для других ошибок
+                            }
                         }
-                    } else {
-                        taskManager.updateSubtask(subtask);
-                        sendCreated(exchange, gson.toJson(subtask));
+                    } catch (JsonSyntaxException e) {
+                        sendBadRequest(exchange);  // 400 при невалидном JSON
                     }
                 }
                 case "DELETE" -> {

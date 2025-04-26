@@ -44,17 +44,21 @@ public class TasksHandler extends BaseHttpHandler {
                 }
                 case "POST" -> {
                     String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                    Task task = gson.fromJson(body, Task.class);
                     try {
-                        if (task.getId() == 0) {
-                            Task created = taskManager.createTask(task);
-                            sendCreated(exchange, gson.toJson(created));
-                        } else {
-                            taskManager.updateTask(task);
-                            sendSuccess(exchange, gson.toJson(task));
+                        Task task = gson.fromJson(body, Task.class);
+                        try {
+                            if (task.getId() == 0) {
+                                Task created = taskManager.createTask(task);
+                                sendCreated(exchange, gson.toJson(created));
+                            } else {
+                                taskManager.updateTask(task);
+                                sendCreated(exchange, gson.toJson(task));
+                            }
+                        } catch (ManagerValidationException e) {
+                            sendHasInteractions(exchange); // Отправляем 406 при пересечении
                         }
-                    } catch (ManagerValidationException e) {
-                        sendNotAcceptable(exchange); // 406 ошибка при пересечении задач
+                    } catch (JsonSyntaxException e) {
+                        sendBadRequest(exchange);
                     }
                 }
                 case "DELETE" -> {
